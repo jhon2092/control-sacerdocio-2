@@ -3,22 +3,17 @@ import pandas as pd
 from datetime import datetime
 from io import BytesIO
 
-# --- Configuración de acceso ---
+# --- Protección por contraseña ---
 st.title("🔐 Control Sacerdocio - Acceso restringido")
-
-PASSWORD = "sacerdocio2025"  # Cambia esto por una contraseña segura
-
-# Campo de contraseña
+PASSWORD = "sacerdocio2025"
 password_input = st.text_input("Ingresa la contraseña:", type="password")
-
 if password_input != PASSWORD:
     st.warning("🔒 Acceso denegado. Ingresa la contraseña correcta.")
-    st.stop()  # Detiene la app aquí si la contraseña no es correcta
+    st.stop()
 
-# --- App principal ---
+# --- Aplicación principal ---
 st.title("📋 Control de Asignaciones - Sacerdocio Aarónico")
 
-# Lista de nombres
 nombres = [
     "Alvarez Guerrero, Robinson Javier",
     "Arrobo Ruíz, Liam Moises",
@@ -59,10 +54,8 @@ nombres = [
     "Viñan Valdez, Irvin Wladimir"
 ]
 
-# Columnas
-columnas = [
-    "Fecha",
-    "Nombre",
+# Columnas de tipo "visto"
+columnas_check = [
     "Preparar Santa Cena",
     "Bendecir Santa Cena",
     "Repartir Santa Cena",
@@ -74,13 +67,23 @@ columnas = [
     "Recomendación del templo activa"
 ]
 
-# Crear DataFrame
+# Crear DataFrame inicial con checkboxes en False
 hoy = datetime.today().strftime('%d/%m/%Y')
-df = pd.DataFrame([[hoy, nombre] + [""] * (len(columnas) - 2) for nombre in nombres], columns=columnas)
+data = []
+for nombre in nombres:
+    fila = {
+        "Fecha": hoy,
+        "Nombre": nombre
+    }
+    for col in columnas_check:
+        fila[col] = False
+    data.append(fila)
 
-# Mostrar editable
-st.subheader("📄 Lista de Asignaciones (editable)")
-df_editado = st.data_editor(df, num_rows="fixed")
+df = pd.DataFrame(data)
+
+# Editor con casillas
+st.subheader("✅ Marca los campos completados")
+df_editado = st.data_editor(df, use_container_width=True)
 
 # Botón de descarga
 def descargar_excel(df):
@@ -91,4 +94,3 @@ def descargar_excel(df):
 
 excel_data = descargar_excel(df_editado)
 st.download_button("💾 Descargar Excel", data=excel_data, file_name="Control_Santa_Cena.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-
